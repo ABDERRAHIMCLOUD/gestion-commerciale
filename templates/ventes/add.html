@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+
+{% block title %}Nouvelle Vente - Système de Gestion Commerciale{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Navigation -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('ventes') }}">Ventes</a></li>
+            <li class="breadcrumb-item active">Nouvelle vente</li>
+        </ol>
+    </nav>
+    
+    <!-- En-tête -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2 mb-3">
+                <i class="fas fa-plus-circle me-2"></i>
+                Enregistrer une Nouvelle Vente
+            </h1>
+            <p class="text-muted">Sélectionnez le client, le produit et la quantité</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Formulaire de vente -->
+        <div class="col-lg-8">
+            <div class="card fade-in-up">
+                <div class="card-header">
+                    <i class="fas fa-edit me-2"></i>
+                    Détails de la Vente
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="venteForm">
+                        <div class="row g-3">
+                            <!-- Client -->
+                            <div class="col-md-6">
+                                <label for="client_id" class="form-label">
+                                    <i class="fas fa-user me-1"></i>
+                                    Client <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select" id="client_id" name="client_id" required>
+                                    <option value="">Sélectionnez un client</option>
+                                    {% for client in clients %}
+                                    <option value="{{ client.id }}">{{ client.nom_complet }} ({{ client.telephone or 'N/A' }})</option>
+                                    {% endfor %}
+                                </select>
+                                {% if not clients %}
+                                <div class="form-text text-warning">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                    <a href="{{ url_for('add_client') }}">Ajoutez d'abord un client</a>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Produit -->
+                            <div class="col-md-6">
+                                <label for="produit_id" class="form-label">
+                                    <i class="fas fa-box me-1"></i>
+                                    Produit <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select" id="produit_id" name="produit_id" required onchange="updatePrixEtStock()">
+                                    <option value="">Sélectionnez un produit</option>
+                                    {% for produit in produits %}
+                                    <option value="{{ produit.id }}" data-prix="{{ produit.prix_unitaire }}" data-stock="{{ produit.quantite_en_stock }}">
+                                        {{ produit.nom }} (Stock: {{ produit.quantite_en_stock }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                {% if not produits %}
+                                <div class="form-text text-warning">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                    <a href="{{ url_for('add_produit') }}">Ajoutez d'abord un produit</a>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Quantité -->
+                            <div class="col-md-4">
+                                <label for="quantite" class="form-label">
+                                    <i class="fas fa-sort-numeric-up me-1"></i>
+                                    Quantité <span class="text-danger">*</span>
+                                </label>
+                                <input type="number" min="1" class="form-control" id="quantite" name="quantite" 
+                                       required placeholder="0" onchange="calculerTotal()">
+                                <div class="form-text" id="stockInfo"></div>
+                            </div>
+                            
+                            <!-- Prix unitaire -->
+                            <div class="col-md-4">
+                                <label for="prix_unitaire" class="form-label">
+                                    <i class="fas fa-euro-sign me-1"></i>
+                                    Prix unitaire <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <input type="number" step="0.01" min="0" class="form-control" 
+                                           id="prix_unitaire" name="prix_unitaire" required 
+                                           placeholder="0.00" onchange="calculerTotal()">
+                                    <span class="input-group-text">€</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Total (calculé automatiquement) -->
+                            <div class="col-md-4">
+                                <label class="form-label">
+                                    <i class="fas fa-calculator me-1"></i>
+                                    Total
+                                </label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control bg-light" id="total" readonly placeholder="0.00">
+                                    <span class="input-group-text">€</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Boutons d'action -->
+                        <div class="row mt-4">
+                            <div class="col">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{{ url_for('ventes') }}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>
+                                        Retour
+                                    </a>
+                                    
+                                    <div>
+                                        <button type="reset" class="btn btn-outline-warning me-2" onclick="resetForm()">
+                                            <i class="fas fa-undo me-2"></i>
+                                            Réinitialiser
+                                        </button>
+                                        <button type="submit" class="btn btn-success" {% if not clients or not produits %}disabled{% endif %}>
+                                            <i class="fas fa-cash-register me-2"></i>
+                                            Enregistrer la Vente
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Informations et résumé -->
+        <div class="col-lg-4">
+            <!-- Résumé de la vente -->
+            <div class="card fade-in-up mb-4">
+                <div class="card-header bg-success text-white">
+                    <i class="fas fa-receipt me-2"></i>
+                    Résumé de la Vente
+                </div>
+                <div class="card-body">
+                    <div id="resumeVente">
+                        <div class="text-center text-muted">
+                            <i class="fas fa-cash-register fs-1 mb-3"></i>
+                            <p>Sélectionnez un client et un produit pour voir le résumé</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Informations utiles -->
+            <div class="card border-success fade-in-up">
+                <div class="card-body">
+                    <h6 class="text-success mb-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Informations importantes
+                    </h6>
+                    <ul class="list-unstyled mb-0 small">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Vérifiez le stock disponible avant la vente
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Le prix peut être modifié selon les conditions
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Le stock sera automatiquement mis à jour
+                        </li>
+                        <li class="mb-0">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Un reçu pourra être imprimé après validation
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updatePrixEtStock() {
+    const select = document.getElementById('produit_id');
+    const selectedOption = select.options[select.selectedIndex];
+    
+    if (selectedOption.value) {
+        const prix = selectedOption.dataset.prix;
+        const stock = selectedOption.dataset.stock;
+        
+        document.getElementById('prix_unitaire').value = prix;
+        document.getElementById('quantite').max = stock;
+        
+        const stockInfo = document.getElementById('stockInfo');
+        stockInfo.innerHTML = `Stock disponible: <strong>${stock}</strong>`;
+        stockInfo.className = `form-text ${stock <= 5 ? 'text-danger' : stock <= 20 ? 'text-warning' : 'text-success'}`;
+        
+        calculerTotal();
+        updateResume();
+    }
+}
+
+function calculerTotal() {
+    const quantite = parseFloat(document.getElementById('quantite').value) || 0;
+    const prix = parseFloat(document.getElementById('prix_unitaire').value) || 0;
+    const total = quantite * prix;
+    
+    document.getElementById('total').value = total.toFixed(2);
+    updateResume();
+}
+
+function updateResume() {
+    const clientSelect = document.getElementById('client_id');
+    const produitSelect = document.getElementById('produit_id');
+    const quantite = document.getElementById('quantite').value;
+    const prix = document.getElementById('prix_unitaire').value;
+    const total = document.getElementById('total').value;
+    
+    const resume = document.getElementById('resumeVente');
+    
+    if (clientSelect.value && produitSelect.value && quantite && prix) {
+        const clientNom = clientSelect.options[clientSelect.selectedIndex].text;
+        const produitNom = produitSelect.options[produitSelect.selectedIndex].text.split('(')[0].trim();
+        
+        resume.innerHTML = `
+            <div class="mb-3">
+                <strong>Client:</strong><br>
+                <span class="text-muted">${clientNom}</span>
+            </div>
+            <div class="mb-3">
+                <strong>Produit:</strong><br>
+                <span class="text-muted">${produitNom}</span>
+            </div>
+            <div class="mb-3">
+                <strong>Quantité:</strong> ${quantite}<br>
+                <strong>Prix unitaire:</strong> ${prix} €
+            </div>
+            <hr>
+            <div class="text-center">
+                <h4 class="text-success">
+                    <strong>Total: ${total} €</strong>
+                </h4>
+            </div>
+        `;
+    } else {
+        resume.innerHTML = `
+            <div class="text-center text-muted">
+                <i class="fas fa-cash-register fs-1 mb-3"></i>
+                <p>Sélectionnez un client et un produit pour voir le résumé</p>
+            </div>
+        `;
+    }
+}
+
+function resetForm() {
+    document.getElementById('venteForm').reset();
+    document.getElementById('stockInfo').innerHTML = '';
+    updateResume();
+}
+
+// Événements pour mettre à jour le résumé
+document.getElementById('client_id').addEventListener('change', updateResume);
+document.getElementById('quantite').addEventListener('input', calculerTotal);
+document.getElementById('prix_unitaire').addEventListener('input', calculerTotal);
+</script>
+{% endblock %}

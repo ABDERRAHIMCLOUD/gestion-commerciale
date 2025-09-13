@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+
+{% block title %}Nouvel Achat - Système de Gestion Commerciale{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Navigation -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('achats') }}">Achats</a></li>
+            <li class="breadcrumb-item active">Nouvel achat</li>
+        </ol>
+    </nav>
+    
+    <!-- En-tête -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2 mb-3">
+                <i class="fas fa-shopping-bag me-2"></i>
+                Enregistrer un Nouvel Achat
+            </h1>
+            <p class="text-muted">Réapprovisionnez votre stock auprès d'un fournisseur</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Formulaire d'achat -->
+        <div class="col-lg-8">
+            <div class="card fade-in-up">
+                <div class="card-header">
+                    <i class="fas fa-edit me-2"></i>
+                    Détails de l'Achat
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="achatForm">
+                        <div class="row g-3">
+                            <!-- Fournisseur -->
+                            <div class="col-md-6">
+                                <label for="fournisseur_id" class="form-label">
+                                    <i class="fas fa-truck me-1"></i>
+                                    Fournisseur <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select" id="fournisseur_id" name="fournisseur_id" required onchange="updateResume()">
+                                    <option value="">Sélectionnez un fournisseur</option>
+                                    {% for fournisseur in fournisseurs %}
+                                    <option value="{{ fournisseur.id }}">{{ fournisseur.nom }} ({{ fournisseur.telephone or 'N/A' }})</option>
+                                    {% endfor %}
+                                </select>
+                                {% if not fournisseurs %}
+                                <div class="form-text text-warning">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                    <a href="{{ url_for('add_fournisseur') }}">Ajoutez d'abord un fournisseur</a>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Produit -->
+                            <div class="col-md-6">
+                                <label for="produit_id" class="form-label">
+                                    <i class="fas fa-box me-1"></i>
+                                    Produit <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select" id="produit_id" name="produit_id" required onchange="updateProduitInfo()">
+                                    <option value="">Sélectionnez un produit</option>
+                                    {% for produit in produits %}
+                                    <option value="{{ produit.id }}" data-prix="{{ produit.prix_unitaire }}" data-stock="{{ produit.quantite_en_stock }}">
+                                        {{ produit.nom }} (Stock actuel: {{ produit.quantite_en_stock }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                {% if not produits %}
+                                <div class="form-text text-warning">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                    <a href="{{ url_for('add_produit') }}">Ajoutez d'abord un produit</a>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Quantité -->
+                            <div class="col-md-4">
+                                <label for="quantite" class="form-label">
+                                    <i class="fas fa-sort-numeric-up me-1"></i>
+                                    Quantité <span class="text-danger">*</span>
+                                </label>
+                                <input type="number" min="1" class="form-control" id="quantite" name="quantite" 
+                                       required placeholder="0" onchange="calculerTotal()">
+                                <div class="form-text" id="stockInfo"></div>
+                            </div>
+                            
+                            <!-- Prix unitaire d'achat -->
+                            <div class="col-md-4">
+                                <label for="prix_unitaire" class="form-label">
+                                    <i class="fas fa-euro-sign me-1"></i>
+                                    Prix d'achat unitaire <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <input type="number" step="0.01" min="0" class="form-control" 
+                                           id="prix_unitaire" name="prix_unitaire" required 
+                                           placeholder="0.00" onchange="calculerTotal()">
+                                    <span class="input-group-text">€</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Total (calculé automatiquement) -->
+                            <div class="col-md-4">
+                                <label class="form-label">
+                                    <i class="fas fa-calculator me-1"></i>
+                                    Total de l'achat
+                                </label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control bg-light" id="total" readonly placeholder="0.00">
+                                    <span class="input-group-text">€</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Boutons d'action -->
+                        <div class="row mt-4">
+                            <div class="col">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{{ url_for('achats') }}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>
+                                        Retour
+                                    </a>
+                                    
+                                    <div>
+                                        <button type="reset" class="btn btn-outline-warning me-2" onclick="resetForm()">
+                                            <i class="fas fa-undo me-2"></i>
+                                            Réinitialiser
+                                        </button>
+                                        <button type="submit" class="btn btn-primary" {% if not fournisseurs or not produits %}disabled{% endif %}>
+                                            <i class="fas fa-shopping-cart me-2"></i>
+                                            Enregistrer l'Achat
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Informations et résumé -->
+        <div class="col-lg-4">
+            <!-- Résumé de l'achat -->
+            <div class="card fade-in-up mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-file-invoice me-2"></i>
+                    Résumé de l'Achat
+                </div>
+                <div class="card-body">
+                    <div id="resumeAchat">
+                        <div class="text-center text-muted">
+                            <i class="fas fa-shopping-cart fs-1 mb-3"></i>
+                            <p>Sélectionnez un fournisseur et un produit pour voir le résumé</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- État du stock actuel -->
+            <div class="card fade-in-up mb-4" id="stockCard" style="display: none;">
+                <div class="card-header bg-info text-white">
+                    <i class="fas fa-warehouse me-2"></i>
+                    État du Stock
+                </div>
+                <div class="card-body">
+                    <div id="stockDetails"></div>
+                </div>
+            </div>
+            
+            <!-- Informations utiles -->
+            <div class="card border-primary fade-in-up">
+                <div class="card-body">
+                    <h6 class="text-primary mb-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Informations importantes
+                    </h6>
+                    <ul class="list-unstyled mb-0 small">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Le prix d'achat peut différer du prix de vente
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Le stock sera automatiquement mis à jour
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Vérifiez les prix avec votre fournisseur
+                        </li>
+                        <li class="mb-0">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Un bon de commande pourra être imprimé
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateProduitInfo() {
+    const select = document.getElementById('produit_id');
+    const selectedOption = select.options[select.selectedIndex];
+    
+    if (selectedOption.value) {
+        const prix = selectedOption.dataset.prix;
+        const stock = selectedOption.dataset.stock;
+        
+        // Prix suggéré (peut être différent du prix de vente)
+        document.getElementById('prix_unitaire').placeholder = `Prix de vente: ${prix} €`;
+        
+        const stockInfo = document.getElementById('stockInfo');
+        stockInfo.innerHTML = `Stock actuel: <strong>${stock}</strong>`;
+        stockInfo.className = `form-text ${stock <= 5 ? 'text-danger' : stock <= 20 ? 'text-warning' : 'text-success'}`;
+        
+        updateStockCard(selectedOption.text, stock, prix);
+        calculerTotal();
+        updateResume();
+    }
+}
+
+function updateStockCard(produitNom, stock, prixVente) {
+    const stockCard = document.getElementById('stockCard');
+    const stockDetails = document.getElementById('stockDetails');
+    
+    let statusClass = stock <= 5 ? 'danger' : stock <= 20 ? 'warning' : 'success';
+    let statusText = stock <= 5 ? 'Critique' : stock <= 20 ? 'Faible' : 'Normal';
+    
+    stockDetails.innerHTML = `
+        <div class="mb-3">
+            <strong>Produit:</strong><br>
+            <span class="text-muted">${produitNom.split('(')[0].trim()}</span>
+        </div>
+        <div class="mb-3">
+            <strong>Stock actuel:</strong>
+            <span class="badge bg-${statusClass} ms-2">${stock} (${statusText})</span>
+        </div>
+        <div class="mb-0">
+            <strong>Prix de vente:</strong> ${prixVente} €
+        </div>
+    `;
+    
+    stockCard.style.display = 'block';
+}
+
+function calculerTotal() {
+    const quantite = parseFloat(document.getElementById('quantite').value) || 0;
+    const prix = parseFloat(document.getElementById('prix_unitaire').value) || 0;
+    const total = quantite * prix;
+    
+    document.getElementById('total').value = total.toFixed(2);
+    updateResume();
+}
+
+function updateResume() {
+    const fournisseurSelect = document.getElementById('fournisseur_id');
+    const produitSelect = document.getElementById('produit_id');
+    const quantite = document.getElementById('quantite').value;
+    const prix = document.getElementById('prix_unitaire').value;
+    const total = document.getElementById('total').value;
+    
+    const resume = document.getElementById('resumeAchat');
+    
+    if (fournisseurSelect.value && produitSelect.value && quantite && prix) {
+        const fournisseurNom = fournisseurSelect.options[fournisseurSelect.selectedIndex].text;
+        const produitNom = produitSelect.options[produitSelect.selectedIndex].text.split('(')[0].trim();
+        
+        resume.innerHTML = `
+            <div class="mb-3">
+                <strong>Fournisseur:</strong><br>
+                <span class="text-muted">${fournisseurNom}</span>
+            </div>
+            <div class="mb-3">
+                <strong>Produit:</strong><br>
+                <span class="text-muted">${produitNom}</span>
+            </div>
+            <div class="mb-3">
+                <strong>Quantité:</strong> ${quantite}<br>
+                <strong>Prix unitaire:</strong> ${prix} €
+            </div>
+            <hr>
+            <div class="text-center">
+                <h4 class="text-primary">
+                    <strong>Total: ${total} €</strong>
+                </h4>
+            </div>
+        `;
+    } else {
+        resume.innerHTML = `
+            <div class="text-center text-muted">
+                <i class="fas fa-shopping-cart fs-1 mb-3"></i>
+                <p>Sélectionnez un fournisseur et un produit pour voir le résumé</p>
+            </div>
+        `;
+    }
+}
+
+function resetForm() {
+    document.getElementById('achatForm').reset();
+    document.getElementById('stockInfo').innerHTML = '';
+    document.getElementById('stockCard').style.display = 'none';
+    updateResume();
+}
+
+// Événements pour mettre à jour le résumé
+document.getElementById('fournisseur_id').addEventListener('change', updateResume);
+document.getElementById('quantite').addEventListener('input', calculerTotal);
+document.getElementById('prix_unitaire').addEventListener('input', calculerTotal);
+</script>
+{% endblock %}

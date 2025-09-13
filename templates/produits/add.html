@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Ajouter un Produit - Système de Gestion Commerciale{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Navigation -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('produits') }}">Produits</a></li>
+            <li class="breadcrumb-item active">Ajouter un produit</li>
+        </ol>
+    </nav>
+    
+    <!-- En-tête -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2 mb-3">
+                <i class="fas fa-box-open me-2"></i>
+                Ajouter un Nouveau Produit
+            </h1>
+            <p class="text-muted">Saisissez les informations du nouveau produit</p>
+        </div>
+    </div>
+    
+    <!-- Formulaire -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card fade-in-up">
+                <div class="card-header">
+                    <i class="fas fa-edit me-2"></i>
+                    Informations du Produit
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="row g-3">
+                            <!-- Nom -->
+                            <div class="col-12">
+                                <label for="nom" class="form-label">
+                                    <i class="fas fa-tag me-1"></i>
+                                    Nom du produit <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="nom" name="nom" required 
+                                       placeholder="Entrez le nom du produit">
+                            </div>
+                            
+                            <!-- Description -->
+                            <div class="col-12">
+                                <label for="description" class="form-label">
+                                    <i class="fas fa-align-left me-1"></i>
+                                    Description
+                                </label>
+                                <textarea class="form-control" id="description" name="description" rows="3" 
+                                          placeholder="Description détaillée du produit"></textarea>
+                            </div>
+                            
+                            <!-- Prix unitaire -->
+                            <div class="col-md-6">
+                                <label for="prix_unitaire" class="form-label">
+                                    <i class="fas fa-euro-sign me-1"></i>
+                                    Prix unitaire <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <input type="number" step="0.01" min="0" class="form-control" 
+                                           id="prix_unitaire" name="prix_unitaire" required 
+                                           placeholder="0.00">
+                                    <span class="input-group-text">€</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Seuil minimum -->
+                            <div class="col-md-6">
+                                <label for="seuil_minimum" class="form-label">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                    Seuil minimum de stock
+                                </label>
+                                <input type="number" min="0" class="form-control" 
+                                       id="seuil_minimum" name="seuil_minimum" value="5"
+                                       placeholder="5">
+                            </div>
+                        </div>
+                        
+                        <!-- Boutons d'action -->
+                        <div class="row mt-4">
+                            <div class="col">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{{ url_for('produits') }}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>
+                                        Retour
+                                    </a>
+                                    
+                                    <div>
+                                        <button type="reset" class="btn btn-outline-warning me-2">
+                                            <i class="fas fa-undo me-2"></i>
+                                            Réinitialiser
+                                        </button>
+                                        <button type="submit" class="btn btn-warning">
+                                            <i class="fas fa-save me-2"></i>
+                                            Enregistrer le Produit
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Informations utiles -->
+    <div class="row mt-4">
+        <div class="col-lg-8">
+            <div class="card border-warning fade-in-up">
+                <div class="card-body">
+                    <h6 class="text-warning mb-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Informations importantes
+                    </h6>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Le prix unitaire sera utilisé comme prix de vente par défaut
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Le seuil minimum déclenche une alerte quand le stock est faible
+                        </li>
+                        <li class="mb-0">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Le stock initial sera à zéro, ajoutez du stock via les achats
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
