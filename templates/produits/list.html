@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Produits - Système de Gestion Commerciale{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- En-tête -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h2 mb-3">
+                <i class="fas fa-box me-2"></i>
+                Gestion des Produits
+            </h1>
+            <p class="text-muted">Gérez votre catalogue de produits</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('add_produit') }}" class="btn btn-warning">
+                <i class="fas fa-plus me-2"></i>
+                Nouveau Produit
+            </a>
+        </div>
+    </div>
+    
+    <!-- Barre de recherche -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="input-group">
+                <span class="input-group-text">
+                    <i class="fas fa-search"></i>
+                </span>
+                <input type="text" class="form-control" placeholder="Rechercher un produit..." data-search="#produits-table">
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tableau des produits -->
+    <div class="row">
+        <div class="col">
+            <div class="card fade-in-up">
+                <div class="card-header">
+                    <i class="fas fa-list me-2"></i>
+                    Liste des Produits ({{ produits|length }})
+                </div>
+                <div class="card-body p-0">
+                    {% if produits %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="produits-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Produit</th>
+                                    <th>Prix Unitaire</th>
+                                    <th>Stock Actuel</th>
+                                    <th>Seuil Minimum</th>
+                                    <th>Date d'ajout</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for produit in produits %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-warning">#{{ produit.id }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="icon-circle warning me-2" style="width: 40px; height: 40px; font-size: 1rem;">
+                                                <i class="fas fa-box"></i>
+                                            </div>
+                                            <div>
+                                                <strong>{{ produit.nom }}</strong>
+                                                {% if produit.description %}
+                                                    <br><small class="text-muted">{{ produit.description[:50] }}{% if produit.description|length > 50 %}...{% endif %}</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ "%.2f"|format(produit.prix_unitaire) }} €</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge {{ 'bg-danger' if produit.quantite_en_stock <= produit.seuil_minimum else 'bg-warning' if produit.quantite_en_stock <= produit.seuil_minimum * 2 else 'bg-success' }}" data-stock-id="{{ produit.id }}">
+                                            {{ produit.quantite_en_stock }}
+                                        </span>
+                                    </td>
+                                    <td>{{ produit.seuil_minimum }}</td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ produit.created_at.strftime('%d/%m/%Y') }}
+                                        </small>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-outline-info btn-sm" title="Voir détails">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-warning btn-sm" title="Modifier">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger btn-sm" title="Supprimer" data-confirm="true">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <div class="icon-circle warning mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <h5>Aucun produit enregistré</h5>
+                        <p class="text-muted">Commencez par ajouter votre premier produit</p>
+                        <a href="{{ url_for('add_produit') }}" class="btn btn-warning">
+                            <i class="fas fa-plus me-2"></i>
+                            Ajouter un produit
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

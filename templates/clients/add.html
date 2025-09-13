@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Ajouter un Client - Système de Gestion Commerciale{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Navigation -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('clients') }}">Clients</a></li>
+            <li class="breadcrumb-item active">Ajouter un client</li>
+        </ol>
+    </nav>
+    
+    <!-- En-tête -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2 mb-3">
+                <i class="fas fa-user-plus me-2"></i>
+                Ajouter un Nouveau Client
+            </h1>
+            <p class="text-muted">Saisissez les informations du nouveau client</p>
+        </div>
+    </div>
+    
+    <!-- Formulaire -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card fade-in-up">
+                <div class="card-header">
+                    <i class="fas fa-edit me-2"></i>
+                    Informations du Client
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="row g-3">
+                            <!-- Nom -->
+                            <div class="col-md-6">
+                                <label for="nom" class="form-label">
+                                    <i class="fas fa-user me-1"></i>
+                                    Nom <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="nom" name="nom" required 
+                                       placeholder="Entrez le nom du client">
+                            </div>
+                            
+                            <!-- Prénom -->
+                            <div class="col-md-6">
+                                <label for="prenom" class="form-label">
+                                    <i class="fas fa-user me-1"></i>
+                                    Prénom <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="prenom" name="prenom" required 
+                                       placeholder="Entrez le prénom du client">
+                            </div>
+                            
+                            <!-- Téléphone -->
+                            <div class="col-md-6">
+                                <label for="telephone" class="form-label">
+                                    <i class="fas fa-phone me-1"></i>
+                                    Téléphone
+                                </label>
+                                <input type="tel" class="form-control" id="telephone" name="telephone" 
+                                       placeholder="Ex: +33 1 23 45 67 89">
+                            </div>
+                            
+                            <!-- Email -->
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">
+                                    <i class="fas fa-envelope me-1"></i>
+                                    Email
+                                </label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       placeholder="client@example.com">
+                            </div>
+                            
+                            <!-- Adresse -->
+                            <div class="col-12">
+                                <label for="adresse" class="form-label">
+                                    <i class="fas fa-map-marker-alt me-1"></i>
+                                    Adresse
+                                </label>
+                                <textarea class="form-control" id="adresse" name="adresse" rows="3" 
+                                          placeholder="Adresse complète du client"></textarea>
+                            </div>
+                        </div>
+                        
+                        <!-- Boutons d'action -->
+                        <div class="row mt-4">
+                            <div class="col">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{{ url_for('clients') }}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>
+                                        Retour
+                                    </a>
+                                    
+                                    <div>
+                                        <button type="reset" class="btn btn-outline-warning me-2">
+                                            <i class="fas fa-undo me-2"></i>
+                                            Réinitialiser
+                                        </button>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-save me-2"></i>
+                                            Enregistrer le Client
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Informations utiles -->
+    <div class="row mt-4">
+        <div class="col-lg-8">
+            <div class="card border-info fade-in-up">
+                <div class="card-body">
+                    <h6 class="text-info mb-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Informations importantes
+                    </h6>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Les champs marqués d'un <span class="text-danger">*</span> sont obligatoires
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Le numéro de téléphone doit inclure l'indicatif pays si nécessaire
+                        </li>
+                        <li class="mb-0">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Une fois créé, le client pourra effectuer des achats et vous pourrez suivre ses versements
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

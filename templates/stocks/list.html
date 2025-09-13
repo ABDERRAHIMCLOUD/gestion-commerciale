@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Stocks - Système de Gestion Commerciale{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- En-tête -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h2 mb-3">
+                <i class="fas fa-warehouse me-2"></i>
+                Suivi des Stocks
+            </h1>
+            <p class="text-muted">Surveillez vos niveaux de stock en temps réel</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <button class="btn btn-info" onclick="updateAllStocks()">
+                <i class="fas fa-sync-alt me-2"></i>
+                Actualiser
+            </button>
+        </div>
+    </div>
+    
+    <!-- Alertes de stock -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="alert alert-warning" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Attention :</strong> Les articles en rouge nécessitent un réapprovisionnement urgent !
+            </div>
+        </div>
+    </div>
+    
+    <!-- Statistiques rapides -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <div class="icon-circle danger mx-auto mb-2" style="width: 50px; height: 50px; font-size: 1.25rem;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h6 class="text-danger">Stock Critique</h6>
+                    <h4>{{ stocks|selectattr('0.quantite', '<=', '0.1.seuil_minimum')|list|length }}</h4>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <div class="icon-circle warning mx-auto mb-2" style="width: 50px; height: 50px; font-size: 1.25rem;">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <h6 class="text-warning">Stock Faible</h6>
+                    <h4>{{ stocks|length - stocks|selectattr('0.quantite', '>', '0.1.seuil_minimum * 2')|list|length }}</h4>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <div class="icon-circle success mx-auto mb-2" style="width: 50px; height: 50px; font-size: 1.25rem;">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h6 class="text-success">Stock Normal</h6>
+                    <h4>{{ stocks|selectattr('0.quantite', '>', '0.1.seuil_minimum * 2')|list|length }}</h4>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <div class="icon-circle info mx-auto mb-2" style="width: 50px; height: 50px; font-size: 1.25rem;">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                    <h6 class="text-info">Total Articles</h6>
+                    <h4>{{ stocks|length }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tableau des stocks -->
+    <div class="row">
+        <div class="col">
+            <div class="card fade-in-up">
+                <div class="card-header">
+                    <i class="fas fa-chart-line me-2"></i>
+                    État des Stocks ({{ stocks|length }} articles)
+                </div>
+                <div class="card-body p-0">
+                    {% if stocks %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Produit</th>
+                                    <th>Stock Actuel</th>
+                                    <th>Seuil Minimum</th>
+                                    <th>État</th>
+                                    <th>Valeur Stock</th>
+                                    <th>Dernière Mise à Jour</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stock, produit in stocks %}
+                                {% set stock_status = 'critical' if stock.quantite <= produit.seuil_minimum else 'low' if stock.quantite <= produit.seuil_minimum * 2 else 'normal' %}
+                                <tr class="{{ 'table-danger' if stock_status == 'critical' else 'table-warning' if stock_status == 'low' else '' }}">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="icon-circle warning me-2" style="width: 40px; height: 40px; font-size: 1rem;">
+                                                <i class="fas fa-box"></i>
+                                            </div>
+                                            <div>
+                                                <strong>{{ produit.nom }}</strong>
+                                                <br><small class="text-muted">#{{ produit.id }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="fs-4 fw-bold {{ 'text-danger' if stock_status == 'critical' else 'text-warning' if stock_status == 'low' else 'text-success' }}" data-stock-id="{{ produit.id }}">
+                                            {{ stock.quantite }}
+                                        </span>
+                                    </td>
+                                    <td>{{ produit.seuil_minimum }}</td>
+                                    <td>
+                                        {% if stock_status == 'critical' %}
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                                Critique
+                                            </span>
+                                        {% elif stock_status == 'low' %}
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-exclamation-circle me-1"></i>
+                                                Faible
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i>
+                                                Normal
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>{{ "%.2f"|format(stock.quantite * produit.prix_unitaire) }} €</strong>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ stock.derniere_mise_a_jour.strftime('%d/%m/%Y %H:%M') }}
+                                        </small>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ url_for('add_achat') }}?produit={{ produit.id }}" class="btn btn-outline-success btn-sm" title="Réapprovisionner">
+                                                <i class="fas fa-plus"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-info btn-sm" title="Historique">
+                                                <i class="fas fa-history"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <div class="icon-circle info mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
+                            <i class="fas fa-warehouse"></i>
+                        </div>
+                        <h5>Aucun stock à afficher</h5>
+                        <p class="text-muted">Ajoutez des produits pour commencer à suivre les stocks</p>
+                        <a href="{{ url_for('add_produit') }}" class="btn btn-warning">
+                            <i class="fas fa-plus me-2"></i>
+                            Ajouter des produits
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateAllStocks() {
+    // Fonction pour actualiser tous les stocks
+    location.reload();
+}
+</script>
+{% endblock %}
